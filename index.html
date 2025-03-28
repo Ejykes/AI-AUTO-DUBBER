@@ -1,24 +1,157 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Auto Dubber</title>
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            margin-top: 20px;
+            font-size: 28px;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 600px;
+            margin: 30px auto;
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(255, 255, 255, 0.2);
+        }
+
+        #videoContainer {
+            width: 100%;
+            display: none;
+            margin-top: 20px;
+            border: 2px solid #007bff;
+            padding: 10px;
+            background: #000;
+            border-radius: 8px;
+        }
+
+        video {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        input, button {
+            margin-top: 15px;
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: none;
+            display: block;
+            width: 100%;
+        }
+
+        #videoUpload {
+            background: #222;
+            color: #fff;
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        #dubBtn {
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+
+        #dubBtn:hover {
+            background-color: #0056b3;
+        }
+
+        #audioPlayer {
+            margin-top: 20px;
+            display: none;
+        }
+    </style>
 </head>
 <body>
 
+    <h1>AI Auto Dubber</h1>
+
     <div class="container">
-        <h1>AI Auto Dubber</h1>
-        <p>Upload your video and let AI translate & dub it.</p>
-       
-        <input type="file" id="uploadVideo" accept="video/*">
-        <button onclick="processVideo()">Translate Video</button>
-       
-        <video id="videoPreview" controls></video>
+        <input type="file" id="videoUpload" accept="video/*">
+
+        <div id="videoContainer">
+            <video id="videoPlayer" controls>
+                Your browser does not support the video tag.
+            </video>
+            <button id="dubBtn">Start AI Dubbing</button>
+        </div>
+
+        <audio id="audioPlayer" controls></audio>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        const API_KEY = "sk_bba2a12mt7gUgfqkZKQ7rowtrQyabTzBVNq7337311125452F37311125457"; // Replace with your actual API key
+        const voiceId = "GBv7mT0atIp3Br8iCZE"; // Kain's Voice ID
+
+        document.getElementById("videoUpload").addEventListener("change", function(event) {
+            let file = event.target.files[0];
+            let videoPlayer = document.getElementById("videoPlayer");
+            let videoContainer = document.getElementById("videoContainer");
+
+            if (file) {
+                let url = URL.createObjectURL(file);
+                videoPlayer.src = url;
+                videoContainer.style.display = "block";
+            }
+        });
+
+        document.getElementById("dubBtn").addEventListener("click", async function() {
+            const subtitles = "Hello, this is a test AI voiceover using Eleven Labs."; // Replace with real subtitles
+
+            try {
+                const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+                    method: "POST",
+                    headers: {
+                        "xi-api-key": API_KEY,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        text: subtitles,
+                        model_id: "eleven_monolingual_v1",
+                        voice_settings: {
+                            stability: 0.5,
+                            similarity_boost: 0.5
+                        }
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.status} - ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                if (!data.audio_url) {
+                    throw new Error("No audio URL received from API.");
+                }
+
+                const audioPlayer = document.getElementById("audioPlayer");
+                audioPlayer.src = data.audio_url;
+                audioPlayer.style.display = "block";
+                audioPlayer.play();
+            } catch (error) {
+                alert("Error fetching AI dubbing audio: " + error.message);
+                console.error(error);
+            }
+        });
+    </script>
+
 </body>
 </html>
