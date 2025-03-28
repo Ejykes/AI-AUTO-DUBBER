@@ -1,0 +1,12 @@
+function processVideo() {
+    const videoInput = document.getElementById('uploadVideo');
+    const videoPreview = document.getElementById('videoPreview');
+
+    if (videoInput.files.length > 0) {
+        const file = videoInput.files[0];
+        const fileURL = URL.createObjectURL(file);
+        videoPreview.src = fileURL;
+    } else {
+        alert("Please upload a video first.");
+    }
+}
